@@ -1,0 +1,49 @@
+#include <Wire.h>
+#include <Servo.h>
+#include <SoftwareSerial.h>
+#include <Adafruit_PWMServoDriver.h>
+
+#define THROTTLE_PIN 10
+#define ROLL_PIN 9
+#define PITCH_PIN 8
+#define YAW_PIN 7
+#define SERVO_FREQ 50
+
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+
+Servo throttle;
+Servo roll;
+Servo pitch;
+Servo yaw;
+
+SoftwareSerial cameraSerial(2, 3); // RX, TX
+
+void setup() {
+  Serial.begin(9600);
+  cameraSerial.begin(9600);
+  pwm.begin();
+  pwm.setPWMFreq(SERVO_FREQ);
+  throttle.attach(THROTTLE_PIN);
+  roll.attach(ROLL_PIN);
+  pitch.attach(PITCH_PIN);
+  yaw.attach(YAW_PIN);
+}
+
+void loop() {
+  // Read inputs from remote controller
+  int throttleValue = map(analogRead(THROTTLE_PIN), 0, 1023, 1000, 2000);
+  int rollValue = map(analogRead(ROLL_PIN), 0, 1023, 1000, 2000);
+  int pitchValue = map(analogRead(PITCH_PIN), 0, 1023, 1000, 2000);
+  int yawValue = map(analogRead(YAW_PIN), 0, 1023, 1000, 2000);
+
+  // Set the servo positions based on the inputs
+  throttle.writeMicroseconds(throttleValue);
+  roll.writeMicroseconds(rollValue);
+  pitch.writeMicroseconds(pitchValue);
+  yaw.writeMicroseconds(yawValue);
+
+  // Read the camera data and send it to the remote controller
+  if (cameraSerial.available()) {
+    Serial.write(cameraSerial.read());
+  }
+}
